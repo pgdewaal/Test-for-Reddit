@@ -27,11 +27,31 @@ class RedditRequestCreater : NSObject {
         let body = [
             "grant_type" : "authorization_code",
             "code" : code,
-            "redirect_uri" : DataManager.shared.redirectUrl
+            "redirect_uri" : DataManager.shared.redirectUrl,
+            "duration" : "permanent"
         ]
         request.httpBody = self.dictionaryToQueryString(dict: body).data(using: String.Encoding.utf8)
         return request
     }
+    
+    class func getTop50Request() -> URLRequest {
+        let params = [
+            "t" : "day",
+            "after" : DataManager.shared.after,
+            "before" : DataManager.shared.before,
+            "count" : "0",
+            "limit" : "50"
+        ]
+        let query = self.dictionaryToQueryString(dict: params)
+        var request = URLRequest.init(url: URL.init(string: "https://oauth.reddit.com/top?\(query)")!)
+        request.addValue(self.getUserAgent(), forHTTPHeaderField: "User-Agent")
+        request.addValue("bearer \(DataManager.shared.accessToken!)", forHTTPHeaderField: "Authorization")
+        request.httpMethod = "GET"
+        
+        return request
+    }
+    
+    
     
     
     class func dictionaryToQueryString(dict:Dictionary<String, String>) -> String {

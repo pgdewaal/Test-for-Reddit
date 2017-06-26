@@ -48,12 +48,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let code = response["code"]
             let state = response["state"]
             if (state == DataManager.shared.state && code != nil) {
-                //                RequestHandler.authCode = code
-//                loginView.alpha = 0
-//                self.getToken(code: code!)
-                DataManager.shared.getToken(code: code!)
+                DataManager.shared.userCode = code
+                (self.window?.rootViewController as! ViewController).userInputReceived(success: true)
             }
             else {
+                (self.window?.rootViewController as! ViewController).userInputReceived(success: false)
                 print("We failed the initial login!")
             }
             return true

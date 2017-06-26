@@ -12,8 +12,20 @@ class DataManager : NSObject {
     
     static let shared = DataManager()
     
-    var authToken : String
+    var userCode : String?
+    var accessToken : String?
     var state : String
+    private var _before : String
+    private var _after : String
+
+    var before : String {
+        get { return _before }
+        set { if newValue != "<null>" { _before = newValue } }
+    }
+    var after : String {
+        get { return _after }
+        set { if newValue != "<null>" { _after = newValue } }
+    }
 
     var clientid : String {
         get {
@@ -43,8 +55,9 @@ class DataManager : NSObject {
     }
     
     override init() {
-        authToken = ""
         state = UUID.init().uuidString
+        _before = ""
+        _after = ""
         print("state is \(state)")
         super.init()
     }
@@ -53,24 +66,5 @@ class DataManager : NSObject {
         return self.redirectUrl.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
     }
     
-    func getToken(code: String) {
-        let session = URLSession.init(configuration: URLSessionConfiguration.default)
-        let request = RedditRequestCreater.getAuthorizationRequest(code: code)
-        
-        print("Running the request!")
-        
-        let task = session.dataTask(with: request) { (data, response, error) in
-            print("Response recieved!")
-            do {
-                let json = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions.allowFragments)
-                print("RESPONSE IS \(json)")
-            }
-            catch {
-                print(error.localizedDescription)
-            }
-            
-        }
-        task.resume()
-    }
-
+    
 }
