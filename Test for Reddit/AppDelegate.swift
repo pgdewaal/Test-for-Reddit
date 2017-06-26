@@ -41,6 +41,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
+        print("got url \(url)")
+        if (url.absoluteString.contains(DataManager.shared.redirectUrl)) {
+            let response = url.getDictionaryOfUrlQueries()
+            let code = response["code"]
+            let state = response["state"]
+            if (state == DataManager.shared.state && code != nil) {
+                //                RequestHandler.authCode = code
+//                loginView.alpha = 0
+//                self.getToken(code: code!)
+                DataManager.shared.getToken(code: code!)
+            }
+            else {
+                print("We failed the initial login!")
+            }
+            return true
+        }
+        else {
+            return false
+        }
+    }
 
 }
 
