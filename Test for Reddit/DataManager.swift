@@ -15,19 +15,20 @@ class DataManager : NSObject {
     var userCode : String?
     var accessToken : String?
     var state : String
+    
     private var _before : String
-    private var _after : String
-
     var before : String {
         get { return _before }
         set { if newValue != "<null>" { _before = newValue } }
     }
+    
+    private var _after : String
     var after : String {
         get { return _after }
         set { if newValue != "<null>" { _after = newValue } }
     }
 
-    var clientid : String {
+    private(set) var clientid : String {
         get {
             let path = Bundle.main.path(forResource: "Info", ofType: "plist")
             let dict = NSDictionary(contentsOfFile: path!)
@@ -40,7 +41,8 @@ class DataManager : NSObject {
         }
         set {}
     }
-    var redirectUrl : String {
+    
+    private(set) var redirectUrl : String {
         get {
             let path = Bundle.main.path(forResource: "Info", ofType: "plist")
             let dict = NSDictionary(contentsOfFile: path!)
@@ -53,6 +55,7 @@ class DataManager : NSObject {
         }
         set {}
     }
+    
     
     override init() {
         state = UUID.init().uuidString

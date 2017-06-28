@@ -30,6 +30,7 @@ class RequestHandler : NSObject {
         method = RequestType.POST
         super.init()
     }
+    
     func submitCallWithResponse() -> (response: Dictionary<String, Any>?, error: Error?) {
         let url = String(format: "\(base)/\(endpoint)" as String);
         //        NSURL url = NSURL.init(string: <#T##String#>)

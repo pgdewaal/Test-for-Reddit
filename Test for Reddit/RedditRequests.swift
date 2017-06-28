@@ -13,6 +13,7 @@ enum RedditEndpoint : String {
 }
 
 class RedditRequestCreater : NSObject {
+    
     class func getAuthorizationRequest(code:String) -> URLRequest {
         var request = URLRequest.init(url: URL.init(string: "https://www.reddit.com/api/v1/access_token")!)
         request.addValue(self.getUserAgent(), forHTTPHeaderField: "User-Agent")
