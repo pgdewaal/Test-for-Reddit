@@ -12,6 +12,7 @@ import Foundation
 enum RedditEndpoint : String {
     case Top = "top"
     case Authorization = "api/v1/access_token"
+    case User = "/api/v1/me"
 }
 
 class RedditRequestBase : NSObject {

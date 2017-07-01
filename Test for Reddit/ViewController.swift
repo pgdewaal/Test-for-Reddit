@@ -36,7 +36,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
     @IBOutlet weak var loginView: UIWebView!
     @IBOutlet weak var collectionView: UICollectionView!
     
-    var listings : RedditListing?
+    var listings : RedditListing = RedditListing.init()
     var isMakingRequest : Bool
     
     required init?(coder aDecoder: NSCoder) {
@@ -49,9 +49,18 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
         print("url: \(DataManager.shared.redirectUrl)")
         print("encoded: \(DataManager.shared.redirectUrlEncoded())");
         self.attemptLogin()
-        listings = DataManager.shared.top
-        
-        
+    }
+    
+    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        let path = collectionView.indexPathsForVisibleItems.first
+        super.viewWillTransition(to: size, with: coordinator)
+        collectionView.reloadData()
+
+        if let path = path {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25, execute: {
+                self.collectionView.scrollToItem(at: path, at: UICollectionViewScrollPosition.top, animated: true)
+            })
+        }
     }
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -59,44 +68,48 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return listings != nil ? listings!.items.count : 0
+        return listings.items.count
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = UIScreen.main.bounds.size.width/2
+        var width = UIScreen.main.bounds.size.width
+        switch UIDevice.current.orientation {
+        case .landscapeLeft, .landscapeRight:
+             width = UIScreen.main.bounds.size.width*0.45
+            break;
+        default:
+            break;
+        }
         return CGSize(width: width, height: width*(9.0/16.0));
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "redditCell", for: indexPath as IndexPath) as! RedditCollectionCell
-        if let link = listings?.items[indexPath.row] {
-            cell.updateCell(forRedditLink: link)
-        }
+        cell.updateCell(forRedditLink: listings.items[indexPath.row])
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         let footer = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "footerView", for: indexPath)
         if kind == UICollectionElementKindSectionFooter && DataManager.shared.accessToken != nil {
-            getTop50()
+            getTop50(after: listings.items.last?.fullname, before: nil)
         }
 
         return footer
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if let link = listings?.items[indexPath.row] {
-            if link.hasFullImage {
-                let storyboard = UIStoryboard(name: "Main", bundle: nil)
-                let controller = storyboard.instantiateViewController(withIdentifier: "fullscreenImageVC") as! FullScreenImageVC
-                controller.link = link
-                self.present(controller, animated: true, completion: nil)
-            }
+        let link = listings.items[indexPath.row]
+        if link.hasFullImage {
+            let storyboard = UIStoryboard(name: "Main", bundle: nil)
+            let controller = storyboard.instantiateViewController(withIdentifier: "fullscreenImageVC") as! FullScreenImageVC
+            controller.link = link
+            self.present(controller, animated: true, completion: nil)
         }
     }
     
     func attemptLogin() {
-        let login = URLRequest.init(url: URL.init(string: "https://www.reddit.com/api/v1/authorize.compact?client_id=6swhF9VsKjCyEQ&response_type=code&state=\(DataManager.shared.state)&redirect_uri=\(DataManager.shared.redirectUrlEncoded())&duration=permanent&scope=read")!)
+        let login = URLRequest.init(url: URL.init(string: "https://www.reddit.com/api/v1/authorize.compact?client_id=6swhF9VsKjCyEQ&response_type=code&state=\(DataManager.shared.state)&redirect_uri=\(DataManager.shared.redirectUrlEncoded())&duration=permanent&scope=read%20identity")!)
         loginView.loadRequest(login)
     }
     
@@ -106,7 +119,7 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
         if success && DataManager.shared.userCode != nil {
             RedditRequestCreater.makeAuthorizationRequest(completion: { (success) in
                 if success {
-                    self.getTop50()
+                    self.getUser()
                 }
                 else {
                     self.showError()
@@ -118,12 +131,12 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
         }
     }
     
-    func getTop50() {
+    func getTop50(after: String?, before: String?) {
         if isMakingRequest {
             return
         }
         isMakingRequest = true
-        RedditRequestCreater.makeTop50Request(completion: { (success) in
+        RedditRequestCreater.makeTop50Request(listing: listings, after: after, before: before) { (success) in
             if success {
                 self.collectionView.reloadData()
             }
@@ -131,14 +144,44 @@ class ViewController: UIViewController, UIWebViewDelegate, UICollectionViewDeleg
                 self.showError()
             }
             self.isMakingRequest = false
+        }
+    }
+    
+    func getUser() {
+        RedditRequestCreater.getUser(completion: { (success) in
+            if success {
+                guard let user = DataManager.shared.user else {
+                    self.getTop50(after: nil, before: nil)
+                    return
+                }
+                self.listings.retrieveItemsForUser(user)
+
+                if self.listings.items.count == 0 {
+                    self.getTop50(after: nil, before: nil)
+                }
+                else {
+                    self.collectionView.reloadData()
+                }
+            }
+            else {
+                self.showError()
+            }
         })
+    }
+    
+    func refresh() {
+        listings.deleteFromCD()
+        isMakingRequest = false
+        getTop50(after: nil, before: nil)
     }
     
     private func showError() {
         let alert = UIAlertController.init(title: "Error", message: "Only supporting the happy path, please try again", preferredStyle: UIAlertControllerStyle.alert)
         alert.addAction(UIAlertAction.init(title: "Ok", style: UIAlertActionStyle.default, handler: { (action) in
-            self.loginView.alpha = 1
-            self.attemptLogin()
+            if DataManager.shared.user == nil{
+                self.loginView.alpha = 1
+                self.attemptLogin()
+            }
         }))
         self.present(alert, animated: true, completion: {
             

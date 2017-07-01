@@ -188,7 +188,7 @@
                                 </connections>
                             </collectionView>
                             <webView contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zKe-GC-Ryf">
-                                <rect key="frame" x="0.0" y="20" width="375" height="647"/>
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                                 <color key="backgroundColor" red="0.36078431370000003" green="0.38823529410000002" blue="0.4039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </webView>
                         </subviews>
@@ -201,9 +201,10 @@
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="zKe-GC-Ryf" secondAttribute="bottom" id="MI4-PM-A8z"/>
                             <constraint firstAttribute="trailing" secondItem="zKe-GC-Ryf" secondAttribute="trailing" id="sZu-He-n9E"/>
                             <constraint firstAttribute="trailing" secondItem="5yc-mz-TWg" secondAttribute="trailing" id="wNT-iv-No2"/>
-                            <constraint firstItem="zKe-GC-Ryf" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" constant="20" id="zCu-N4-0nV"/>
+                            <constraint firstItem="zKe-GC-Ryf" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="zCu-N4-0nV"/>
                         </constraints>
                     </view>
+                    <simulatedStatusBarMetrics key="simulatedStatusBarMetrics"/>
                     <connections>
                         <outlet property="collectionView" destination="5yc-mz-TWg" id="3df-cE-cly"/>
                         <outlet property="loginView" destination="zKe-GC-Ryf" id="PkZ-qM-1RY"/>

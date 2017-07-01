@@ -11,7 +11,10 @@ import Foundation
 
 class RedditRequestCreater : NSObject {
     
+    static var task : URLSessionDataTask?
+    
     class func makeAuthorizationRequest(completion: @escaping (_ success: Bool) -> ()) {
+        task?.cancel()
         let auth = RedditRequestBase.init(endpoint: RedditEndpoint.Authorization, httpMethod: "POST", requiresAuth: false)
         
         let base = String.init(format: "\(DataManager.shared.clientid):")
@@ -30,7 +33,7 @@ class RedditRequestCreater : NSObject {
         let session = URLSession.init(configuration: URLSessionConfiguration.default)
         let request = auth.createRequest()
         
-        session.dataTask(with: request) { (data, response, error) in
+        task = session.dataTask(with: request) { (data, response, error) in
             print("Response recieved!")
             if let data = data {
                 do {
@@ -48,53 +51,106 @@ class RedditRequestCreater : NSObject {
                 }
             }
             else {
-                DispatchQueue.main.async {
-                    completion(false)
+                if error?.localizedDescription != "cancelled" {
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
                 }
             }
             
-            }.resume()
+            }
+        task?.resume()
     }
     
-    class func makeTop50Request(completion: @escaping (_ success: Bool) -> ()) {
+    class func makeTop50Request(listing: RedditListing, after: String?, before: String?, completion: @escaping (_ success: Bool) -> ()) {
+        task?.cancel()
+        
         let top = RedditRequestBase.init(endpoint: RedditEndpoint.Top, httpMethod: "GET", requiresAuth: true)
-        let after = DataManager.shared.top.items.last?.fullname
-        top.urlParameters = [
-            "t" : "day",
-            "limit" : "50",
-            "count" : String(DataManager.shared.top.items.count),
-            "after" : after ?? ""
-        ]
+        if let before = before {
+            top.urlParameters = [
+                "t" : "day",
+                "limit" : "49",
+                "count" : String(listing.items.count),
+                "before" : before
+            ]
+        }
+        else {
+            top.urlParameters = [
+                "t" : "day",
+                "limit" : "50",
+                "count" : String(listing.items.count),
+                "after" : after ?? ""
+            ]
+        }
 
         let session = URLSession.init(configuration: URLSessionConfiguration.default)
         let request = top.createRequest()
-        session.dataTask(with: request) { (data, response, error) in
+        task = session.dataTask(with: request) { (data, response, error) in
             print("Response top 50 recieved!")
-            do {
-                //So I would normally handle the case of hitting the "end" of a listing, but I'm only doing happy path for the test
-                if let data = data {
+            //So I would normally handle the case of hitting the "end" of a listing, but I'm only doing happy path for the test
+            if let data = data {
+                do {
+                    
                     let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String : Any]
                     if let dict = Helper.checkNull(json["data"]) as? [String : Any] {
-                        DataManager.shared.top.addItems(data: dict)
+                        listing.addItems(data: dict)
                     }
                     DispatchQueue.main.async {
                         completion(true)
                     }
                 }
-                else {
+                catch {
+                    print(error.localizedDescription)
                     DispatchQueue.main.async {
                         completion(false)
                     }
                 }
-                
             }
-            catch {
-                print(error.localizedDescription)
-                DispatchQueue.main.async {
-                    completion(false)
+            else {
+                if error?.localizedDescription != "cancelled" {
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
                 }
             }
-            
-        }.resume()
+        }
+        task?.resume()
+    }
+    
+    class func getUser(completion: @escaping (_ success: Bool) -> ()) {
+        task?.cancel()
+        
+        let top = RedditRequestBase.init(endpoint: RedditEndpoint.User, httpMethod: "GET", requiresAuth: true)
+        
+        let session = URLSession.init(configuration: URLSessionConfiguration.default)
+        let request = top.createRequest()
+        task = session.dataTask(with: request) { (data, response, error) in
+                //So I would normally handle the case of hitting the "end" of a listing, but I'm only doing happy path for the test
+            if let data = data {
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String : Any]
+                    if let name = json["name"] as? String{
+                        DataManager.shared.user = name
+                    }
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                }
+                catch {
+                    print(error.localizedDescription)
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                }
+            }
+            else {
+                if error?.localizedDescription != "cancelled" {
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                }
+            }
+        }
+        task?.resume()
     }
 }

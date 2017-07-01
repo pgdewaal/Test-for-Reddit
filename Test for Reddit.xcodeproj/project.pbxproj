@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		3B0990D21F04C21C00642BD3 /* RedditRequestBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B0990D11F04C21C00642BD3 /* RedditRequestBase.swift */; };
+		3B39415F1F077162001115CD /* RedditModel.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3B39415D1F077162001115CD /* RedditModel.xcdatamodeld */; };
 		3B4CD1731F00E0CC00FBB44E /* RedditDataObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4CD1721F00E0CC00FBB44E /* RedditDataObjects.swift */; };
 		3B4CD1751F00EC5400FBB44E /* HelperMethods.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4CD1741F00EC5400FBB44E /* HelperMethods.swift */; };
 		3B7D19301EFF346B0057BA45 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B7D192F1EFF346B0057BA45 /* AppDelegate.swift */; };
@@ -23,6 +24,7 @@
 
 /* Begin PBXFileReference section */
 		3B0990D11F04C21C00642BD3 /* RedditRequestBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RedditRequestBase.swift; sourceTree = "<group>"; };
+		3B39415E1F077162001115CD /* RedditModel.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = RedditModel.xcdatamodel; sourceTree = "<group>"; };
 		3B4CD1721F00E0CC00FBB44E /* RedditDataObjects.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RedditDataObjects.swift; sourceTree = "<group>"; };
 		3B4CD1741F00EC5400FBB44E /* HelperMethods.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HelperMethods.swift; sourceTree = "<group>"; };
 		3B7D192C1EFF346B0057BA45 /* Test for Reddit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Test for Reddit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -80,6 +82,7 @@
 				3B0990D11F04C21C00642BD3 /* RedditRequestBase.swift */,
 				3B4CD1721F00E0CC00FBB44E /* RedditDataObjects.swift */,
 				3B4CD1741F00EC5400FBB44E /* HelperMethods.swift */,
+				3B39415D1F077162001115CD /* RedditModel.xcdatamodeld */,
 				3B7D193B1EFF346B0057BA45 /* Info.plist */,
 			);
 			path = "Test for Reddit";
@@ -160,6 +163,7 @@
 				3B7D19321EFF346B0057BA45 /* ViewController.swift in Sources */,
 				3B7D19461EFF36F50057BA45 /* RedditRequests.swift in Sources */,
 				3B7D19421EFF34A10057BA45 /* DataManager.swift in Sources */,
+				3B39415F1F077162001115CD /* RedditModel.xcdatamodeld in Sources */,
 				3BB9728C1F03408700F1161E /* FullScreenImageVC.swift in Sources */,
 				3B0990D21F04C21C00642BD3 /* RedditRequestBase.swift in Sources */,
 				3B4CD1751F00EC5400FBB44E /* HelperMethods.swift in Sources */,
@@ -330,6 +334,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		3B39415D1F077162001115CD /* RedditModel.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				3B39415E1F077162001115CD /* RedditModel.xcdatamodel */,
+			);
+			currentVersion = 3B39415E1F077162001115CD /* RedditModel.xcdatamodel */;
+			path = RedditModel.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 3B7D19241EFF346B0057BA45 /* Project object */;
 }

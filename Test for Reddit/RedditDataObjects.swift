@@ -8,24 +8,40 @@
 
 import Foundation
 import UIKit
+import CoreData
 
 class RedditListing : NSObject {
     private(set) var items : Array<RedditLink> = Array.init()
+    
+    override init() {
+        super.init()
+    }
     
     func addItems(data: Dictionary<String, Any>) {
         let before = Helper.checkNull(data["before"]) as? String ?? ""
         let after = Helper.checkNull(data["after"]) as? String ?? ""
         
+        
         print("before \(before) | after \(after)")
         
         if let children = data["children"] as? Array<Dictionary<String, Any>> {
+            var count = 0
             for tmp in children {
-                if let item = Helper.checkNull(tmp["data"]) as? Dictionary<String, Any> {
-                    addItem(RedditLink.init(dictionary: item))
+                if var item = Helper.checkNull(tmp["data"]) as? Dictionary<String, Any> {
+                    item.updateValue(count, forKey: "orderCount")
+                    count += 1
+                    if let descript = NSEntityDescription.entity(forEntityName: "Link", in: Helper.getContext()) {
+                        let link = RedditLink.init(entity: descript, insertInto: Helper.getContext(), withDictionary: item)
+                        addItem(link)
+                    }
+                    else {
+                        print("Error creating description")
+                    }
                 }
             }
         }
         print("have \(items.count) items")
+        saveToCD()
     }
     
     private func addItem(_ item: RedditLink) {
@@ -39,7 +55,43 @@ class RedditListing : NSObject {
             items.insert(item, at: dup)
         }
         else {
+            
             items.append(item)
+        }
+    }
+    
+    func saveToCD() {
+        do {
+            try Helper.getContext().save()
+        } catch {
+            fatalError("Failure to save context: \(error)")
+        }
+    }
+    
+    func deleteFromCD() {
+        let context = Helper.getContext()
+        for item in items {
+            context.delete(item)
+        }
+        items.removeAll()
+        saveToCD()
+    }
+    
+    func retrieveItemsForUser(_ user: String){
+        do {
+            let fetch = NSFetchRequest<NSFetchRequestResult>.init(entityName: "Link")
+            fetch.predicate = NSPredicate.init(format: "user == %@", user)
+            fetch.sortDescriptors = [NSSortDescriptor.init(key: "order", ascending: true)]
+            
+            if let links = try Helper.getContext().fetch(fetch) as? [RedditLink] {
+                items = links
+                print("Found these \(links.count) links")
+            }
+            else {
+                print("Found no links")
+            }
+        } catch {
+            fatalError("Failed to fetch employees: \(error)")
         }
     }
 }
@@ -50,22 +102,30 @@ extension URL {
     }
 }
 
-class RedditLink : NSObject {
-    private(set) var title : String
-    private(set) var author : String
-    private(set) var entryDate : Date?
-    private(set) var commentsCount : Int
-    private(set) var hasFullImage : Bool
-    private(set) var id : String
-    private(set) var fullname : String
-    
-    private var thumbURL : String
-    private var fullURL : String
+class RedditLink : NSManagedObject {
+    @NSManaged private(set) var title : String
+    @NSManaged private(set) var author : String
+    @NSManaged private(set) var entryDate : Date?
+    @NSManaged private(set) var commentsCount : Int
+    @NSManaged private(set) var hasFullImage : Bool
+    @NSManaged private(set) var id : String
+    @NSManaged private(set) var fullname : String
+    @NSManaged private(set) var order : Int
+    @NSManaged private(set) var user : String
+
+    @NSManaged private var thumbURL : String
+    @NSManaged private var fullURL : String
     private var thumb : UIImage?
     private var full : UIImage?
     
-
-    init(dictionary: Dictionary<String, Any>) {
+    class func entityDescription() -> String {
+        return "Link"
+    }
+    
+    init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?, withDictionary dictionary: Dictionary<String, Any>) {
+        super.init(entity: entity, insertInto: context)
+        order = dictionary["orderCount"] as! Int
+        user = DataManager.shared.user ?? "<Unknown/Failed>"
         author = Helper.checkNull(dictionary["author"]) as? String ?? ""
         commentsCount = Helper.checkNull(dictionary["num_comments"]) as? Int ?? 0
         title = Helper.checkNull(dictionary["title"]) as? String ?? ""
@@ -74,14 +134,16 @@ class RedditLink : NSObject {
         id = Helper.checkNull(dictionary["id"]) as? String ?? ""
         let hint = Helper.checkNull(dictionary["post_hint"]) as? String ?? ""
         hasFullImage = hint == "image"
-
+        
         let since = Helper.checkNull(dictionary["created_utc"]) as? Int ?? 0
         if since != 0 {
             entryDate = Date.init(timeIntervalSince1970: TimeInterval(since))
         }
         fullname = Helper.checkNull(dictionary["name"]) as? String ?? ""
-
-        super.init()
+    }
+    
+    override init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?) {
+        super.init(entity: entity, insertInto: context)
     }
     
     func thumbnail(completion: @escaping (_ image: UIImage?) -> ()) {

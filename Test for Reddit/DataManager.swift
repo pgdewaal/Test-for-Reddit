@@ -15,9 +15,8 @@ class DataManager : NSObject {
     var userCode : String?
     var accessToken : String?
     var state : String
-    var top : RedditListing
+    var user : String?
     
-
     private(set) var clientid : String {
         get {
             let path = Bundle.main.path(forResource: "Info", ofType: "plist")
@@ -46,16 +45,12 @@ class DataManager : NSObject {
         set {}
     }
     
-    
     override init() {
         state = UUID.init().uuidString
-        top = RedditListing.init()
         super.init()
     }
     
     func redirectUrlEncoded() -> String {
         return self.redirectUrl.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)!
     }
-    
-    
 }

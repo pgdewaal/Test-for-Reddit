@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 class Helper : NSObject {
     
@@ -26,6 +27,15 @@ class Helper : NSObject {
         }
         else {
             return Int(interval/60.0/60.0)
+        }
+    }
+    
+    class func getContext() -> NSManagedObjectContext {
+        if let delegate = UIApplication.shared.delegate as? AppDelegate {
+            return delegate.persistentContainer.viewContext
+        }
+        else {
+            fatalError("Something went wrong with the delegate. Crash for dev purposes only.")
         }
     }
 }
