@@ -34,6 +34,8 @@ class RedditCollectionCell : UICollectionViewCell {
         setLabelsAlpha(1)
     }
     
+    // MARK: - Public/Private Methods
+
     func updateCell(forRedditLink:RedditLink) {
         lblTitle.text = forRedditLink.title //So I know you said "at it's full length"; but the reality is (IMO) that there is a "max size" that the UI designer won't allow it to grow any larger by. I can easily adjust the constraint to be however big I want, to make it feasible; but I've chosen to limit it to just 4 lines.
         lblAuthor.text = String.init("by \(forRedditLink.author)")
@@ -55,6 +57,17 @@ class RedditCollectionCell : UICollectionViewCell {
         }
     }
     
+    private func setLabelsAlpha(_ alpha: CGFloat) {
+        if imgThumb.image != nil {
+            lblTitle.alpha = alpha
+            lblAuthor.alpha = alpha
+            lblComment.alpha = alpha
+            lblDate.alpha = alpha
+        }
+    }
+    
+    // MARK: - Touch Override Methods
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         lastTouch = CACurrentMediaTime()
@@ -66,7 +79,7 @@ class RedditCollectionCell : UICollectionViewCell {
             super.touchesEnded(touches, with: event)
         }
         else {
-            super.touchesCancelled(touches, with: event)    
+            super.touchesCancelled(touches, with: event)
         }
         setLabelsAlpha(1)
     }
@@ -75,13 +88,5 @@ class RedditCollectionCell : UICollectionViewCell {
         super.touchesCancelled(touches, with: event)
         setLabelsAlpha(1)
     }
-    
-    private func setLabelsAlpha(_ alpha: CGFloat) {
-        if imgThumb.image != nil {
-            lblTitle.alpha = alpha
-            lblAuthor.alpha = alpha
-            lblComment.alpha = alpha
-            lblDate.alpha = alpha
-        }
-    }
+
 }

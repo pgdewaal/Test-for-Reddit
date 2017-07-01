@@ -13,6 +13,7 @@ enum RedditEndpoint : String {
     case Top = "top"
     case Authorization = "api/v1/access_token"
     case User = "/api/v1/me"
+    case Logout = "/api/v1/revoke_token"
 }
 
 class RedditRequestBase : NSObject {
@@ -24,7 +25,6 @@ class RedditRequestBase : NSObject {
     var headers : Dictionary<String, String>?
     
     private var baseURL : String
-    
     
     init(endpoint: RedditEndpoint, httpMethod: String, requiresAuth: Bool) {
         self.endpoint = endpoint

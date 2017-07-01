@@ -17,13 +17,9 @@ class RedditListing : NSObject {
         super.init()
     }
     
+    // MARK: - Public/Private Methods
+    
     func addItems(data: Dictionary<String, Any>) {
-        let before = Helper.checkNull(data["before"]) as? String ?? ""
-        let after = Helper.checkNull(data["after"]) as? String ?? ""
-        
-        
-        print("before \(before) | after \(after)")
-        
         if let children = data["children"] as? Array<Dictionary<String, Any>> {
             var count = 0
             for tmp in children {
@@ -40,8 +36,8 @@ class RedditListing : NSObject {
                 }
             }
         }
-        print("have \(items.count) items")
         saveToCD()
+        print("have \(items.count) items")
     }
     
     private func addItem(_ item: RedditLink) {
@@ -49,27 +45,25 @@ class RedditListing : NSObject {
             return existing.id == item.id
         })
         if let dup = duplicate {
-            print("Found duplicate at \(dup)")
-            print("\(item.title) = \(items[dup])")
-            items.remove(at: dup)
+            Helper.getContext().delete(items.remove(at: dup))
             items.insert(item, at: dup)
         }
         else {
-            
             items.append(item)
         }
     }
     
+    // MARK: - CoreData Helper Methods
+
     func saveToCD() {
-        do {
-            try Helper.getContext().save()
-        } catch {
-            fatalError("Failure to save context: \(error)")
+        if let delegate = UIApplication.shared.delegate as? AppDelegate{
+            delegate.saveContext()
         }
     }
     
     func deleteFromCD() {
         let context = Helper.getContext()
+        
         for item in items {
             context.delete(item)
         }
@@ -96,11 +90,8 @@ class RedditListing : NSObject {
     }
 }
 
-extension URL {
-    static func httpSafeInit(string: String) -> URL? {
-        return URL.init(string: string.replacingOccurrences(of: "http:", with: "https:"))
-    }
-}
+// MARK: -
+// MARK: -
 
 class RedditLink : NSManagedObject {
     @NSManaged private(set) var title : String
@@ -123,7 +114,7 @@ class RedditLink : NSManagedObject {
     }
     
     init(entity: NSEntityDescription, insertInto context: NSManagedObjectContext?, withDictionary dictionary: Dictionary<String, Any>) {
-        super.init(entity: entity, insertInto: context)
+        super.init(entity: entity, insertInto: nil)
         order = dictionary["orderCount"] as! Int
         user = DataManager.shared.user ?? "<Unknown/Failed>"
         author = Helper.checkNull(dictionary["author"]) as? String ?? ""
@@ -146,6 +137,8 @@ class RedditLink : NSManagedObject {
         super.init(entity: entity, insertInto: context)
     }
     
+    // MARK: - Public Methods
+
     func thumbnail(completion: @escaping (_ image: UIImage?) -> ()) {
         if thumb == nil {
             if let tmpURL = URL.httpSafeInit(string: thumbURL)  {
@@ -182,5 +175,14 @@ class RedditLink : NSManagedObject {
         else {
             completion(full)
         }
+    }
+}
+
+// MARK: -
+// MARK: -
+
+extension URL {
+    static func httpSafeInit(string: String) -> URL? {
+        return URL.init(string: string.replacingOccurrences(of: "http:", with: "https:"))
     }
 }
