@@ -15,18 +15,8 @@ class DataManager : NSObject {
     var userCode : String?
     var accessToken : String?
     var state : String
+    var top : RedditListing
     
-    private var _before : String
-    var before : String {
-        get { return _before }
-        set { if newValue != "<null>" { _before = newValue } }
-    }
-    
-    private var _after : String
-    var after : String {
-        get { return _after }
-        set { if newValue != "<null>" { _after = newValue } }
-    }
 
     private(set) var clientid : String {
         get {
@@ -59,9 +49,7 @@ class DataManager : NSObject {
     
     override init() {
         state = UUID.init().uuidString
-        _before = ""
-        _after = ""
-        print("state is \(state)")
+        top = RedditListing.init()
         super.init()
     }
     

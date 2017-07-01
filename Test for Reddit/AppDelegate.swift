@@ -44,7 +44,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ app: UIApplication, open url: URL, options: [UIApplicationOpenURLOptionsKey : Any] = [:]) -> Bool {
         print("got url \(url)")
         if (url.absoluteString.contains(DataManager.shared.redirectUrl)) {
-            let response = url.getDictionaryOfUrlQueries()
+            guard let response = url.getDictionaryOfUrlQueries() else {
+                (self.window?.rootViewController as! ViewController).userInputReceived(success: false)
+                print("We failed the initial login!")
+                return true
+            }
             let code = response["code"]
             let state = response["state"]
             if (state == DataManager.shared.state && code != nil) {

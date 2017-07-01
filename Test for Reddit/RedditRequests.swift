@@ -8,96 +8,93 @@
 
 import Foundation
 
-enum RedditEndpoint : String {
-    case Top = "top"
-}
 
 class RedditRequestCreater : NSObject {
     
-    class func getAuthorizationRequest(code:String) -> URLRequest {
-        var request = URLRequest.init(url: URL.init(string: "https://www.reddit.com/api/v1/access_token")!)
-        request.addValue(self.getUserAgent(), forHTTPHeaderField: "User-Agent")
-        request.httpMethod = "POST"
+    class func makeAuthorizationRequest(completion: @escaping (_ success: Bool) -> ()) {
+        let auth = RedditRequestBase.init(endpoint: RedditEndpoint.Authorization, httpMethod: "POST", requiresAuth: false)
         
         let base = String.init(format: "\(DataManager.shared.clientid):")
         let data = (base).data(using: String.Encoding.utf8)
         let base64 = data!.base64EncodedString(options: NSData.Base64EncodingOptions(rawValue: 0))
 
-        request.addValue("Basic \(base64): ", forHTTPHeaderField: "Authorization")
-        
-        let body = [
+        auth.headers = [
+            "Authorization" : "Basic \(base64): "
+        ]
+        auth.bodyParameters = [
             "grant_type" : "authorization_code",
-            "code" : code,
+            "code" : DataManager.shared.userCode!,
             "redirect_uri" : DataManager.shared.redirectUrl,
             "duration" : "permanent"
         ]
-        request.httpBody = self.dictionaryToQueryString(dict: body).data(using: String.Encoding.utf8)
-        return request
-    }
-    
-    class func getTop50Request() -> URLRequest {
-        let params = [
-            "t" : "day",
-            "after" : DataManager.shared.after,
-            "before" : DataManager.shared.before,
-            "count" : "0",
-            "limit" : "50"
-        ]
-        let query = self.dictionaryToQueryString(dict: params)
-        var request = URLRequest.init(url: URL.init(string: "https://oauth.reddit.com/top?\(query)")!)
-        request.addValue(self.getUserAgent(), forHTTPHeaderField: "User-Agent")
-        request.addValue("bearer \(DataManager.shared.accessToken!)", forHTTPHeaderField: "Authorization")
-        request.httpMethod = "GET"
+        let session = URLSession.init(configuration: URLSessionConfiguration.default)
+        let request = auth.createRequest()
         
-        return request
-    }
-    
-    
-    
-    
-    class func dictionaryToQueryString(dict:Dictionary<String, String>) -> String {
-        var ret = ""
-        
-        for key in dict.keys {
-            if ret != "" {
-                ret.append("&")
+        session.dataTask(with: request) { (data, response, error) in
+            print("Response recieved!")
+            if let data = data {
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String : Any]
+                    DataManager.shared.accessToken = json["access_token"] as? String
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                }
+                catch {
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                    print(error.localizedDescription)
+                }
             }
-            let value = dict[key] ?? ""
-            ret.append("\(key)=\(value)")
-        }
-        return ret
+            else {
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+            }
+            
+            }.resume()
     }
     
-    class func getUserAgent() -> String {
-        let bundleID = Bundle.main.bundleIdentifier!
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "unknown"
-        let user = "pgdewaal"
-        
-        return String(format:"iPhone:\(bundleID):v\(version) (by /u/\(user)")
+    class func makeTop50Request(completion: @escaping (_ success: Bool) -> ()) {
+        let top = RedditRequestBase.init(endpoint: RedditEndpoint.Top, httpMethod: "GET", requiresAuth: true)
+        let after = DataManager.shared.top.items.last?.fullname
+        top.urlParameters = [
+            "t" : "day",
+            "limit" : "50",
+            "count" : String(DataManager.shared.top.items.count),
+            "after" : after ?? ""
+        ]
+
+        let session = URLSession.init(configuration: URLSessionConfiguration.default)
+        let request = top.createRequest()
+        session.dataTask(with: request) { (data, response, error) in
+            print("Response top 50 recieved!")
+            do {
+                //So I would normally handle the case of hitting the "end" of a listing, but I'm only doing happy path for the test
+                if let data = data {
+                    let json = try JSONSerialization.jsonObject(with: data, options: JSONSerialization.ReadingOptions.allowFragments) as! [String : Any]
+                    if let dict = Helper.checkNull(json["data"]) as? [String : Any] {
+                        DataManager.shared.top.addItems(data: dict)
+                    }
+                    DispatchQueue.main.async {
+                        completion(true)
+                    }
+                }
+                else {
+                    DispatchQueue.main.async {
+                        completion(false)
+                    }
+                }
+                
+            }
+            catch {
+                print(error.localizedDescription)
+                DispatchQueue.main.async {
+                    completion(false)
+                }
+            }
+            
+        }.resume()
     }
 }
-
-
-//class RedditRequest : NSURLRequest {
-//    
-//    required init(url: URL) {
-////        super.init(url: url)
-//        
-//    }
-//    
-//    required init?(coder aDecoder: NSCoder) {
-//        super.init(coder: aDecoder)
-//    }
-//    
-//    //client ID 6swhF9VsKjCyEQ
-//    
-//
-//    func getUserAgent() -> String {
-//        
-//        let bundleID = Bundle.main.bundleIdentifier!
-//        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] ?? "unknown"
-//        let user = "pgdewaal"
-//        
-//        return String(format:"iPhone:\(bundleID):v\(version) (by /u/\(user)")
-//    }
-//}

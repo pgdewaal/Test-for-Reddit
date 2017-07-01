@@ -19,7 +19,6 @@ class RedditCollectionCell : UICollectionViewCell {
     
     var lastTouch : Double
     
-    
     required init?(coder aDecoder: NSCoder) {
         lastTouch = 0
         super.init(coder: aDecoder)

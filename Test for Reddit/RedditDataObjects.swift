@@ -10,27 +10,54 @@ import Foundation
 import UIKit
 
 class RedditListing : NSObject {
-    var items : Array<RedditLink>
+    private(set) var items : Array<RedditLink> = Array.init()
     
-    
-    init(children: Array<Dictionary<String, Any>>) {
-        items = Array.init()
+    func addItems(data: Dictionary<String, Any>) {
+        let before = Helper.checkNull(data["before"]) as? String ?? ""
+        let after = Helper.checkNull(data["after"]) as? String ?? ""
         
-        for tmp in children {
-            if Helper.checkNull(tmp["data"]) != nil {
-                items.append(RedditLink.init(dictionary: tmp["data"] as! Dictionary<String, Any>))
+        print("before \(before) | after \(after)")
+        
+        if let children = data["children"] as? Array<Dictionary<String, Any>> {
+            for tmp in children {
+                if let item = Helper.checkNull(tmp["data"]) as? Dictionary<String, Any> {
+                    addItem(RedditLink.init(dictionary: item))
+                }
             }
         }
-        super.init()
+        print("have \(items.count) items")
+    }
+    
+    private func addItem(_ item: RedditLink) {
+        let duplicate = items.index(where: { (existing) -> Bool in
+            return existing.id == item.id
+        })
+        if let dup = duplicate {
+            print("Found duplicate at \(dup)")
+            print("\(item.title) = \(items[dup])")
+            items.remove(at: dup)
+            items.insert(item, at: dup)
+        }
+        else {
+            items.append(item)
+        }
+    }
+}
+
+extension URL {
+    static func httpSafeInit(string: String) -> URL? {
+        return URL.init(string: string.replacingOccurrences(of: "http:", with: "https:"))
     }
 }
 
 class RedditLink : NSObject {
-    var title : String
-    var author : String
-    var entryDate : Date?
-    var commentsCount : Int
-    var hasFullImage : Bool
+    private(set) var title : String
+    private(set) var author : String
+    private(set) var entryDate : Date?
+    private(set) var commentsCount : Int
+    private(set) var hasFullImage : Bool
+    private(set) var id : String
+    private(set) var fullname : String
     
     private var thumbURL : String
     private var fullURL : String
@@ -44,7 +71,7 @@ class RedditLink : NSObject {
         title = Helper.checkNull(dictionary["title"]) as? String ?? ""
         thumbURL = Helper.checkNull(dictionary["thumbnail"]) as? String ?? ""
         fullURL = Helper.checkNull(dictionary["url"]) as? String ?? ""
-        
+        id = Helper.checkNull(dictionary["id"]) as? String ?? ""
         let hint = Helper.checkNull(dictionary["post_hint"]) as? String ?? ""
         hasFullImage = hint == "image"
 
@@ -52,12 +79,14 @@ class RedditLink : NSObject {
         if since != 0 {
             entryDate = Date.init(timeIntervalSince1970: TimeInterval(since))
         }
+        fullname = Helper.checkNull(dictionary["name"]) as? String ?? ""
+
         super.init()
     }
     
     func thumbnail(completion: @escaping (_ image: UIImage?) -> ()) {
         if thumb == nil {
-            if let tmpURL = URL.init(string: thumbURL)  {
+            if let tmpURL = URL.httpSafeInit(string: thumbURL)  {
                 DispatchQueue.global().async {
                     let data = try? Data(contentsOf: tmpURL)
                     DispatchQueue.main.async {
@@ -76,7 +105,7 @@ class RedditLink : NSObject {
     
     func fullsize(completion: @escaping (_ image: UIImage?) -> ()) {
         if full == nil {
-            if let tmpURL = URL.init(string: fullURL)  {
+            if let tmpURL = URL.httpSafeInit(string: fullURL)  {
                 DispatchQueue.global().async {
                     let data = try? Data(contentsOf: tmpURL)
                     DispatchQueue.main.async {
