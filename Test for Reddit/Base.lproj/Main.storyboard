@@ -36,23 +36,44 @@
                                     <color key="titleColor" red="0.98345468419699" green="1" blue="0.94688521340007514" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 </state>
                                 <connections>
-                                    <action selector="buttonTapped:" destination="JHj-QA-AuF" eventType="touchUpInside" id="SXt-gK-Mfc"/>
+                                    <action selector="closeTapped:" destination="JHj-QA-AuF" eventType="touchUpInside" id="wTd-KP-aj0"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="J1O-s5-xCe">
+                                <rect key="frame" x="0.0" y="0.0" width="46" height="30"/>
+                                <color key="backgroundColor" red="0.0" green="0.0" blue="0.0" alpha="0.74647887323943662" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="46" id="4nS-Sd-YBj"/>
+                                    <constraint firstAttribute="height" constant="30" id="rwW-hg-7fj"/>
+                                </constraints>
+                                <state key="normal" title="Save">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <state key="disabled">
+                                    <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="savedTapped:" destination="JHj-QA-AuF" eventType="touchUpInside" id="f9L-QK-ALG"/>
                                 </connections>
                             </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="J1O-s5-xCe" firstAttribute="top" secondItem="rjT-ET-crd" secondAttribute="bottom" id="60m-0A-M8B"/>
                             <constraint firstAttribute="trailing" secondItem="ajk-gB-eZC" secondAttribute="trailing" id="T8s-Ex-XTZ"/>
                             <constraint firstItem="iix-Tg-oDw" firstAttribute="top" secondItem="rjT-ET-crd" secondAttribute="bottom" id="Ub0-T6-xAd"/>
                             <constraint firstItem="ajk-gB-eZC" firstAttribute="top" secondItem="61L-1c-gVI" secondAttribute="top" id="aok-2W-Aui"/>
                             <constraint firstItem="ajk-gB-eZC" firstAttribute="leading" secondItem="61L-1c-gVI" secondAttribute="leading" id="ctk-Wb-hpa"/>
                             <constraint firstAttribute="trailing" secondItem="iix-Tg-oDw" secondAttribute="trailing" id="pgG-ZT-eqU"/>
+                            <constraint firstItem="J1O-s5-xCe" firstAttribute="leading" secondItem="61L-1c-gVI" secondAttribute="leadingMargin" constant="-16" id="vhC-CJ-Z1O"/>
                             <constraint firstItem="eT5-Cg-90o" firstAttribute="top" secondItem="ajk-gB-eZC" secondAttribute="bottom" id="w7R-Cz-ZAe"/>
                         </constraints>
                     </view>
                     <nil key="simulatedStatusBarMetrics"/>
                     <nil key="simulatedTopBarMetrics"/>
                     <connections>
+                        <outlet property="btnSave" destination="J1O-s5-xCe" id="Mxm-VA-xz6"/>
                         <outlet property="imgView" destination="ajk-gB-eZC" id="ihI-n6-4zW"/>
                     </connections>
                 </viewController>
